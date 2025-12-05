@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AmpBender - Tube Amp Simulator | Heath Audio</title>
+  <meta name="description" content="AmpBender v1.0.0 Beta - Professional tube amp simulation with IR loader, circuit mods, and vintage tone shaping. Free download for Mac and Windows.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================
+       DESIGN TOKENS (from style-guide.md)
+       ============================================ */
+    :root {
+      /* Neutrals - Dark Theme */
+      --color-bg-primary: #1a1a1a;
+      --color-bg-secondary: #2a2a2a;
+      --color-bg-tertiary: #3a3a3a;
+      --color-text-primary: #ffffff;
+      --color-text-secondary: #b3b3b3;
+      --color-text-tertiary: #808080;
+      --color-border-primary: #4a4a4a;
+      --color-border-secondary: #3a3a3a;
+
+      /* Primary Accent */
+      --color-primary: #4a9eff;
+      --color-primary-hover: #6bb0ff;
+      --color-primary-active: #3a8eef;
+
+      /* AmpBender Specific */
+      --color-amp-tolex: #2a2419;
+      --color-amp-grill: #1a1410;
+      --color-amp-gold: #d4af37;
+      --color-amp-cream: #f5f0e1;
+
+      /* Success/Warning */
+      --color-success: #4caf50;
+      --color-warning: #ff9800;
+
+      /* Typography */
+      --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', Monaco, 'Courier New', monospace;
+
+      /* Spacing */
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.5rem;
+      --space-6: 2rem;
+      --space-8: 3rem;
+      --space-10: 4rem;
+
+      /* Border Radius */
+      --radius-sm: 2px;
+      --radius-md: 4px;
+      --radius-lg: 8px;
+      --radius-xl: 12px;
+
+      /* Shadows */
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.35);
+      --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.4);
+
+      /* Transitions */
+      --duration-fast: 100ms;
+      --duration-normal: 200ms;
+    }
+
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-primary);
+      background: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+      transition: color var(--duration-fast);
+    }
+
+    a:hover {
+      color: var(--color-primary-hover);
+    }
+
+    /* ============================================
+       LAYOUT
+       ============================================ */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--space-6);
+    }
+
+    /* ============================================
+       HEADER / NAV
+       ============================================ */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(26, 26, 26, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--color-border-secondary);
+    }
+
+    .header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 100px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .logo-img {
+      height: 80px;
+      width: auto;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+    }
+
+    .nav-link {
+      color: var(--color-text-secondary);
+      font-weight: 500;
+      transition: color var(--duration-fast);
+    }
+
+    .nav-link:hover {
+      color: var(--color-text-primary);
+    }
+
+    /* ============================================
+       HERO SECTION
+       ============================================ */
+    .hero {
+      padding: calc(100px + var(--space-10)) 0 var(--space-10);
+      background: linear-gradient(180deg, var(--color-amp-tolex) 0%, var(--color-bg-primary) 100%);
+      text-align: center;
+    }
+
+    .hero .container {
+      width: 100%;
+    }
+
+    .beta-badge {
+      display: inline-block;
+      background: var(--color-warning);
+      color: #000;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-md);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-4);
+    }
+
+    .hero-title {
+      font-size: clamp(3rem, 8vw, 5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: var(--space-4);
+      letter-spacing: -0.03em;
+    }
+
+    .hero-title span {
+      color: var(--color-amp-gold);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+      color: var(--color-text-secondary);
+      max-width: 600px;
+      margin: 0 auto var(--space-8);
+      line-height: 1.5;
+    }
+
+    .hero-image {
+      max-width: 900px;
+      margin: 0 auto var(--space-8);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      border: 1px solid var(--color-border-primary);
+    }
+
+    .hero-image img {
+      width: 100%;
+    }
+
+    /* ============================================
+       DOWNLOAD BUTTONS
+       ============================================ */
+    .download-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .download-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-6);
+      border-radius: var(--radius-lg);
+      font-size: 1.125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--duration-normal);
+      border: none;
+      text-decoration: none;
+      min-width: 220px;
+      justify-content: center;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: var(--color-text-primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+      color: var(--color-text-primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-secondary {
+      background: var(--color-bg-tertiary);
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-bg-secondary);
+      border-color: var(--color-primary);
+      color: var(--color-text-primary);
+      transform: translateY(-2px);
+    }
+
+    .btn-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    .download-info {
+      color: var(--color-text-tertiary);
+      font-size: 0.875rem;
+    }
+
+    .requirements-section {
+      padding: var(--space-10) 0;
+    }
+
+    .requirements-box {
+      max-width: 700px;
+      margin: 0 auto;
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--color-border-secondary);
+      padding: var(--space-6);
+    }
+
+    .requirement-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--color-border-secondary);
+    }
+
+    .requirement-item:last-child {
+      border-bottom: none;
+    }
+
+    .req-label {
+      font-weight: 600;
+      color: var(--color-amp-gold);
+      min-width: 80px;
+    }
+
+    .req-value {
+      color: var(--color-text-secondary);
+      text-align: right;
+      flex: 1;
+      margin-left: var(--space-4);
+    }
+
+    @media (max-width: 600px) {
+      .requirement-item {
+        flex-direction: column;
+        gap: var(--space-2);
+      }
+      .req-value {
+        text-align: left;
+        margin-left: 0;
+      }
+    }
+
+    /* ============================================
+       FEATURED SECTION - BENDING PATCHBAY
+       ============================================ */
+    .featured {
+      padding: var(--space-10) 0;
+      background: linear-gradient(180deg, var(--color-bg-primary) 0%, var(--color-amp-tolex) 50%, var(--color-bg-primary) 100%);
+    }
+
+    .featured-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-8);
+      align-items: center;
+    }
+
+    .featured-text {
+      padding-right: var(--space-6);
+    }
+
+    .featured-badge {
+      display: inline-block;
+      background: var(--color-amp-gold);
+      color: #000;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-md);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-4);
+    }
+
+    .featured-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: var(--space-4);
+      letter-spacing: -0.02em;
+    }
+
+    .featured-title span {
+      color: var(--color-amp-gold);
+    }
+
+    .featured-desc {
+      font-size: 1.125rem;
+      color: var(--color-text-secondary);
+      line-height: 1.7;
+      margin-bottom: var(--space-6);
+    }
+
+    .featured-list {
+      list-style: none;
+    }
+
+    .featured-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+      color: var(--color-text-secondary);
+    }
+
+    .featured-list li::before {
+      content: ">";
+      color: var(--color-amp-gold);
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    .featured-image {
+      display: flex;
+      justify-content: center;
+    }
+
+    .featured-image img {
+      max-height: 600px;
+      width: auto;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+      border: 1px solid var(--color-border-primary);
+    }
+
+    /* ============================================
+       FEATURES SECTION
+       ============================================ */
+    .features {
+      padding: var(--space-10) 0;
+      background: var(--color-bg-secondary);
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: var(--space-8);
+      letter-spacing: -0.02em;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-6);
+    }
+
+    .feature-card {
+      background: var(--color-bg-primary);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      border: 1px solid var(--color-border-secondary);
+      transition: border-color var(--duration-normal), transform var(--duration-normal);
+      text-align: center;
+    }
+
+    .feature-card:hover {
+      border-color: var(--color-amp-gold);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--color-amp-tolex);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto var(--space-4);
+      color: var(--color-amp-gold);
+      font-size: 1.5rem;
+    }
+
+    .feature-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: var(--space-2);
+    }
+
+    .feature-desc {
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
+
+    /* ============================================
+       SCREENSHOTS GALLERY
+       ============================================ */
+    .gallery {
+      padding: var(--space-10) 0;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: var(--space-5);
+    }
+
+    .gallery-item {
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      border: 1px solid var(--color-border-secondary);
+      transition: transform var(--duration-normal), box-shadow var(--duration-normal);
+      background: var(--color-bg-secondary);
+      text-align: center;
+    }
+
+    .gallery-item:hover {
+      transform: scale(1.02);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .gallery-item.wide {
+      grid-column: span 8;
+    }
+
+    .gallery-item.medium {
+      grid-column: span 4;
+    }
+
+    .gallery-item.tall {
+      grid-column: span 4;
+      grid-row: span 2;
+    }
+
+    .gallery-caption {
+      background: var(--color-bg-secondary);
+      padding: var(--space-3) var(--space-4);
+      text-align: center;
+      color: var(--color-text-secondary);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--color-border-secondary);
+    }
+
+    /* ============================================
+       SPECS SECTION
+       ============================================ */
+    .specs {
+      padding: var(--space-10) 0;
+      background: var(--color-bg-secondary);
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-6);
+    }
+
+    .spec-item {
+      text-align: center;
+      padding: var(--space-5);
+    }
+
+    .spec-label {
+      color: var(--color-text-tertiary);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-2);
+    }
+
+    .spec-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--color-amp-gold);
+    }
+
+    /* ============================================
+       BETA NOTICE
+       ============================================ */
+    .beta-notice {
+      padding: var(--space-8) 0;
+      background: linear-gradient(90deg, var(--color-amp-tolex), var(--color-bg-primary));
+    }
+
+    .notice-box {
+      background: rgba(255, 152, 0, 0.1);
+      border: 1px solid var(--color-warning);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      text-align: center;
+    }
+
+    .notice-title {
+      color: var(--color-warning);
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: var(--space-3);
+    }
+
+    .notice-text {
+      color: var(--color-text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    .footer {
+      padding: var(--space-8) 0;
+      border-top: 1px solid var(--color-border-secondary);
+      text-align: center;
+    }
+
+    .footer-logo {
+      margin-bottom: var(--space-4);
+    }
+
+    .footer-logo-img {
+      height: 100px;
+      width: auto;
+      margin: 0 auto;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-6);
+      margin-bottom: var(--space-4);
+    }
+
+    .footer-link {
+      color: var(--color-text-secondary);
+      font-size: 0.875rem;
+    }
+
+    .footer-link:hover {
+      color: var(--color-text-primary);
+    }
+
+    .footer-copy {
+      color: var(--color-text-tertiary);
+      font-size: 0.875rem;
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 968px) {
+      .featured-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .featured-text {
+        padding-right: 0;
+        order: 2;
+      }
+
+      .featured-image {
+        order: 1;
+      }
+
+      .featured-list li {
+        justify-content: center;
+      }
+
+      .gallery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .gallery-item.wide,
+      .gallery-item.medium,
+      .gallery-item.tall {
+        grid-column: span 1;
+        grid-row: span 1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 var(--space-4);
+      }
+
+      .nav {
+        display: none;
+      }
+
+      .hero {
+        padding-top: calc(100px + var(--space-8));
+        padding-bottom: var(--space-8);
+      }
+
+      .download-buttons {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .featured-title {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="logo">
+        <img src="images/heath-audio-logo.png" alt="Heath Audio" class="logo-img">
+      </div>
+      <nav class="nav">
+        <a href="#patchbay" class="nav-link">Bending Patchbay</a>
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#gallery" class="nav-link">Screenshots</a>
+        <a href="#download" class="nav-link">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <span class="beta-badge">v1.0.0 Beta</span>
+      <h1 class="hero-title">Amp<span>Bender</span></h1>
+      <p class="hero-subtitle">
+        Based on the legendary Marshall JCM800 circuit. Our goal: discover new tones
+        hiding within this classic design. Bend your tone to perfection.
+      </p>
+
+      <div class="hero-image">
+        <img src="images/hero_screenshot.png" alt="AmpBender Plugin Interface" width="1600" height="1206">
+      </div>
+
+      <div class="download-section" id="download">
+        <div class="download-buttons">
+          <a href="installers/AmpBender-Windows-1.0.0-beta.exe" class="btn btn-primary" download>
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/>
+            </svg>
+            Download for Windows
+          </a>
+        </div>
+        <p class="download-info">
+          VST3 &amp; Standalone | Windows 10+ (64-bit) | macOS coming soon
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Featured: Bending Patchbay -->
+  <section class="featured" id="patchbay">
+    <div class="container">
+      <div class="featured-content">
+        <div class="featured-text">
+          <span class="featured-badge">Signature Feature</span>
+          <h2 class="featured-title">The Bending <span>Patchbay</span></h2>
+          <p class="featured-desc">
+            Bend your signal like never before. Access and route gain stages directly
+            to push the amp to its absolute limit. The interactive patchbay lets you
+            visualize your signal path and load custom impulse responses for cabinet simulation.
+          </p>
+          <ul class="featured-list">
+            <li>HIGH/LOW input selection with visual cable routing</li>
+            <li>Drag-and-drop IR loader with waveform preview</li>
+            <li>Built-in 4x12" cabinet impulse response</li>
+            <li>Real-time signal flow visualization</li>
+          </ul>
+        </div>
+        <div class="featured-image">
+          <img src="images/patchbay-screenshot.png" alt="Bending Patchbay with IR Loader" width="467" height="1060">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2 class="section-title">Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">&#127928;</div>
+          <h3 class="feature-title">Tube Amp Simulation</h3>
+          <p class="feature-desc">
+            State of the art tube amp modelling using advanced Wave Digital Filters (WDF),
+            based on research from Stanford University and open source code from ChowDSP.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#9881;</div>
+          <h3 class="feature-title">Circuit Mods</h3>
+          <p class="feature-desc">
+            We incorporated some of the most popular mods for the JCM800
+            so you can push even further. Gain Boost and Input Warmth switches included.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#9889;</div>
+          <h3 class="feature-title">Power Supply / VARIAC</h3>
+          <p class="feature-desc">
+            Simulate voltage sag and VARIAC control for authentic
+            tube compression and brown sound characteristics.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#127897;</div>
+          <h3 class="feature-title">HIGH/LOW Input</h3>
+          <p class="feature-desc">
+            Switch between high and low gain inputs just like a real amp.
+            Interactive patchbay visualization included.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#128266;</div>
+          <h3 class="feature-title">IR Cabinet Loader</h3>
+          <p class="feature-desc">
+            Load your own impulse responses or use the built-in 4x12" cabinet.
+            Drag and drop WAV files for instant tone matching.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">&#128200;</div>
+          <h3 class="feature-title">31-Band Spectrum</h3>
+          <p class="feature-desc">
+            Real-time frequency analyzer shows your tone at a glance.
+            Visualize the impact of every adjustment.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="gallery" id="gallery">
+    <div class="container">
+      <h2 class="section-title">Screenshots</h2>
+      <div class="gallery-grid">
+        <!-- Spectrum - Wide -->
+        <div class="gallery-item wide">
+          <img src="images/spectrum-screenshot.png" alt="31-Band Spectrum Analyzer" width="800" height="300">
+          <div class="gallery-caption">31-band real-time spectrum analyzer</div>
+        </div>
+
+        <!-- Controls - Medium -->
+        <div class="gallery-item medium">
+          <img src="images/controls-screenshot.png" alt="Amp Controls" width="664" height="657">
+          <div class="gallery-caption">Authentic amp controls with vintage styling</div>
+        </div>
+
+        <!-- Mods - Medium -->
+        <div class="gallery-item medium">
+          <img src="images/mods-screenshot.png" alt="Circuit Mods" width="623" height="600">
+          <div class="gallery-caption">Circuit mods with LED position indicators</div>
+        </div>
+
+        <!-- Power Supply - Medium -->
+        <div class="gallery-item medium">
+          <img src="images/power-supply-screenshot.PNG" alt="Power Supply Section" width="518" height="600">
+          <div class="gallery-caption">Power supply with VARIAC voltage control</div>
+        </div>
+
+        <!-- IR Loader - Medium -->
+        <div class="gallery-item medium">
+          <img src="images/ir_loader_screenshot.PNG" alt="IR Loader" width="450" height="330">
+          <div class="gallery-caption">Drag-and-drop IR loader with waveform display</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Specs -->
+  <section class="specs">
+    <div class="container">
+      <h2 class="section-title">Specifications</h2>
+      <div class="specs-grid">
+        <div class="spec-item">
+          <div class="spec-label">Plugin Formats</div>
+          <div class="spec-value">VST3 / AU</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Sample Rates</div>
+          <div class="spec-value">44.1 - 192 kHz</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Bit Depth</div>
+          <div class="spec-value">32-bit Float</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-label">Latency</div>
+          <div class="spec-value">Zero Latency</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Minimum Requirements -->
+  <section class="requirements-section">
+    <div class="container">
+      <h2 class="section-title">Minimum Requirements</h2>
+      <div class="requirements-box">
+        <div class="requirement-item">
+          <span class="req-label">OS</span>
+          <span class="req-value">Windows 10 and up (64-bit only)</span>
+        </div>
+        <div class="requirement-item">
+          <span class="req-label">CPU</span>
+          <span class="req-value">Intel Core i7 (8th-gen+) or AMD Ryzen 5 (3000-series+) with AVX2 support</span>
+        </div>
+        <div class="requirement-item">
+          <span class="req-label">RAM</span>
+          <span class="req-value">8 GB minimum, 16 GB+ recommended</span>
+        </div>
+        <div class="requirement-item">
+          <span class="req-label">Formats</span>
+          <span class="req-value">VST3, Standalone</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Beta Notice -->
+  <section class="beta-notice">
+    <div class="container">
+      <div class="notice-box">
+        <h3 class="notice-title">Beta Version Notice</h3>
+        <p class="notice-text">
+          This is a beta release for testing purposes. Some features may still be in development.
+          Please report any bugs or feedback to help us improve AmpBender before the official release.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">
+        <img src="images/heath-audio-logo.png" alt="Heath Audio" class="footer-logo-img">
+      </div>
+      <div class="footer-links">
+        <a href="mailto:jasonlnheath@gmail.com" class="footer-link">Contact</a>
+        <a href="mailto:jasonlnheath@gmail.com" class="footer-link">Support</a>
+      </div>
+      <p class="footer-copy">&copy; 2025 Heath Audio. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>
